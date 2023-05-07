@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="31">
+  <link rel="stylesheet" type="text/css" href="static/allSites.css">
+  <title>docs</title>
+  <script type="text/javascript">
+    function homeWindow() {
+      window.history.replaceState(null, '', '/');
+      window.location.replace("http://localhost{{ .Port }}/home");
+    }
+  </script>
+</head>
+<body>
+  <base target="_self">
+  <div id="add">
+    <a href="http://localhost:8686/createDoc"><b>+<b></a>
+  </div>
+  <div class="all">
+    {{ range .Docs }}
+    <p class="docs">{{ .Name }}<span>{{ .Value  }}</span></p>
+    {{ end }}
+  </div>
+
+  <div class="close">
+    <button type="button" onclick="homeWindow();">🏠</button>
+  </div>
+</body>
+</html>
