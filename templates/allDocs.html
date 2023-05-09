@@ -17,9 +17,10 @@
   <div id="add">
     <a href="http://localhost:8686/createDoc"><b>+<b></a>
   </div>
-  <div class="all">
+  <div class="docs">
     {{ range .Docs }}
-    <p class="docs">{{ .Name }}<span>{{ .Value  }}</span></p>
+    <p class="doc">{{ .Name }}</p>
+    <input class="value" id={{.Name}} type="text" value={{ .Value }}><button class="dbut">☰</button>
     {{ end }}
   </div>
 
