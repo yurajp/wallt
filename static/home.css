@@ -1,0 +1,66 @@
+h1 {
+  font-size: 64px;
+	text-align: center;
+	color: darkslateblue;
+	margin-top: 180px;
+}
+
+.choice {
+  display: flex;
+  justify-content: space-around;
+}
+
+.chapter {
+	display: block;
+	margin-top: 6rem;
+	width: 10rem;
+	padding: 2rem;
+	border: 2px solid gray;
+	border-radius: 35px;
+	text-align: center;
+	background-color: linen;
+}
+.chapter a {
+	text-decoration: none;
+	font-size: 3.0rem;
+	font-weight: 600;
+	color: black;
+}
+#utils {
+  display: block;
+  margin: 140px auto;
+}
+#utils p {
+  text-align: center;
+}
+#utils a {
+  text-decoration: none;
+	font-size: 2.8em;
+	font-weight: 600;
+	color: darkgreen;
+}
+.top {
+  display: block;
+  width: 48px;
+  margin: 10px auto;
+}
+.top a {
+  text-align: center;
+  font-size: 2.8em;
+  text-decoration: none;
+  color: firebrick;
+}
+.close {
+  display: flex;
+  justify-content: center;
+}
+.close button {
+  margin: 0px auto;
+  text-align: center;
+  font-size: 2.8em;
+  font-weight: 600;
+  background-color: linen;
+  color: firebrick;
+  padding: 20px;
+  border-radius: 30px;
+}

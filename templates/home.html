@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="31">
+    <link rel="stylesheet" type="text/css" href="static/home.css">
+    <title>Wallt</title>
+    <script type="text/javascript" language="javascript">
+      function exitWindow() {
+        window.history.replaceState(null, "", "/")
+        window.location.replace("http://localhost{{ . }}/exit");
+      }
+    </script>
+  </head>
+  <body>
+    <base target="_self">
+    <h1>WALLT</h1>
+    <br>
+    <div class="choice">
+        <div class="chapter">
+            <a href="http://localhost{{ . }}/sites">SITES</a>
+        </div>
+        <div class="chapter">
+            <a href="http://localhost{{ . }}/cards">CARDS</a>
+        </div>
+        <div class="chapter">
+            <a href="http://localhost{{ . }}/docs">DOCS</a>
+        </div>
+        <br>
+        <div class="chapter">
+            <a href="http://localhost{{ . }}/passrf">PASSW</a>
+        </div>
+  </div>
+  <div id="utils">
+    <p><a href="http://localhost{{ . }}/backup">Backup data</a></a></p>
+    <br>
+    <p><a href="http://localhost{{ . }}/recode">Change password</a></p>
+    <br>
+    <p><a href="http://localhost{{ . }}/share">Share database</a></p>
+  </div>
+  <div class="top">
+  <!--  <a href="http://localhost:8686/exit"><b>EXIT</b></a> -->
+    <br>
+    </div>
+  <div class="close">
+    <button type="button" onclick="exitWindow();">CLOSE</button>
+  </div>
+  </body>
+</html>

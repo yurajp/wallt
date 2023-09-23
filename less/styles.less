@@ -1,0 +1,80 @@
+@font_lg: 3.0rem;
+@font_md: 2.6rem;
+@font_sm: 2.0rem;
+
+h1, h2, h3, h4 {
+  text-align: center;
+  color: darkslategray;0
+}
+
+.field(@marg_lr:100px) {
+  display: block;
+  margin: 60px @marg_lr;
+  padding: 30px 60px;
+  border: 2px solid silver;
+  border-radius: 25px;
+  a {
+    text-decoration: none;
+    font-size: @font_med;
+    color: darkslategray;
+  }
+  span {
+    padding-left: 30px;
+    font-size: @font_med;
+    font-style: italic;
+    font-weight: 400;
+  }
+}
+
+.top {
+  display: block;
+  margin: 80px auto;
+  padding: 40px 60px;
+  a {
+    text-align: center;
+    font-size: @font_lg;
+    text-decoration: none;
+    color: firebrick;
+  }
+}
+
+.create {
+  .top;
+  label {
+    font-size: @font_sm;
+    padding: 20px;
+    margin-top:30px;
+  }
+  input {
+    font-size: @font_md;
+    background: linen;
+    margin: 10px;
+    padding: 15px 25px;
+  }
+}
+
+.message {
+  .field(80px);
+  p {
+    font-weight:600;
+    padding: 30px;
+    font-size: @font_lg;
+  }
+}
+
+.docs {
+  .field(80px);
+}
+
+.doc {
+  font-size: @font_md;
+}
+
+.value {
+  font-size: @font_sm;
+  padding: 5px 20px;
+}
+
+.all {
+  .field(120px);
+}

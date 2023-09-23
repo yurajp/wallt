@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="31">
+  <link rel="stylesheet" type="text/css" href="static/allSites.css">
+  <title>cards</title>
+  <script type="text/javascript">
+    function openRow(url) {
+      window.history.replaceState(null, '', '/');
+      window.open(url, target='_self');
+    }
+    
+    function homeWindow() {
+      window.history.replaceState(null, '', '/');
+      window.location.replace("http://localhost{{ .Port }}/home");
+    }
+  </script>
+</head>
+<body>
+  <base target="_self">
+  <div id="add">
+    <a href="http://localhost{{ .Port }}/createCard"><b>+<b></a>
+  </div>
+  <div class="all">
+    {{ range .Names }}
+    <p>{{ . }}</p>
+    {{ end }}
+  </div>
+
+  <div class="close">
+    <button type="button" onclick="homeWindow();">🏠</button>
+  </div>
+</body>
+</html>
