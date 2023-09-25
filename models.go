@@ -78,6 +78,12 @@ type DocsPort struct {
   Port string
 }
 
+type DocPort struct {
+  Doc
+  Port string
+}
+
+
 type PassRF struct {
   SerialNum string
   Date string

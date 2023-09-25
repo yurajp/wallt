@@ -10,23 +10,19 @@
       window.history.replaceState(null, '', '/');
       window.location.replace("http://localhost{{ .Port }}/home");
     }
-    
-    
-    
-    
-    
-    
   </script>
 </head>
 <body>
+  {{ $prt := .Port }}
   <base target="_self">
   <div id="add">
-    <a href="http://localhost:8686/createDoc"><b>+<b></a>
+    <a href="http://localhost{{.Port}}/createDoc"><b>+<b></a>
   </div>
   <div class="docs">
     {{ range .Docs }}
     <p class="doc">{{ .Name }}</p>
     <input class="value" id={{.Name}} type="text" value={{ .Value }}><button class="dbut" onclick="navigator.clipboard.writeText({{ .Value }});">☰</button>
+    <button class="dbut"  onclick="window.location.href='http://localhost{{ $prt }}/editDoc?doc={{.Name}}'">&#x1F174;</button>
     {{ end }}
   </div>
 

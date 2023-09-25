@@ -1,0 +1,35 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="static/createSite.css">
+    <title>create</title>
+    <script type="text/javascript">
+      function docsWindow() {
+        window.history.replaceState(null, '', '/');
+        window.location.replace("http://localhost{{ .Port }}/docs");
+      }
+    </script>
+  </head>
+  <body>
+    <base target="_self">
+    <h3>{{.Name}}</h3>
+    <div class="create">
+      <form method="POST">
+        <label for="value">New Value</label><br>
+        <input id="value" type="text" name="value" value={{.Value}}>
+        <br>
+        <br>
+        <div id="delbx">
+          <label><input id="delete" type="checkbox" name="delete" value="del">✘ Delete this document</label>
+        </div>
+        <br>
+        <input id="button" type="submit">
+      </form>
+    </div>
+
+    <div class="close">
+      <button type="button" onclick="docsWindow();">&#x1F4DA;</button>
+    </div>
+  </body>
+</html>

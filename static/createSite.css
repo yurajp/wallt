@@ -27,13 +27,15 @@ h3 {
 	font-family: sans-serif;
 	padding: 20px;
 	margin-top: 30px;
-	font-size: 2.0rem;
+	font-size: 2.4rem;
 	
 }
 #button {
+  margin-top: 40px;
 	font-size: 2.0rem;
 	background: firebrick;
   border-radius: 30px;
+  color: white;
 }
 .date {
   display: flex;
@@ -83,4 +85,15 @@ h3 {
   color: firebrick;
   padding: 20px;
   border-radius: 30px;
+}
+
+#delbx {
+  display: flex;
+  justify-content: space around;
+  margin: 30px;
+  font-size: 3.0rem;
+}
+#delbox input label {
+  font-size: 42px;
+  color: red;
 }

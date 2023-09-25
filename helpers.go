@@ -19,6 +19,10 @@ func check(err error) {
   }
 }
 
+func Addr(s string) string {
+  return fmt.Sprintf("https://localhost%s/%s", app.web.server.Addr, s)
+}
+
 func (app *App) IsDead() bool {
   return app.web.word == ""
 }

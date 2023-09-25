@@ -2,6 +2,7 @@ package conf
 
 import (
   "fmt"
+  "errors"
   "encoding/json"
   "os"
   "time"
@@ -14,7 +15,15 @@ type Config struct {
   Livetime time.Duration `json: "livetime"`
 }
 
-var Cfg *Config
+type RemoteConfig struct {
+  User string `json:"user"`
+  Addr string `json:"addr"`
+  RDbPath string `json:"rdbpath"`
+  KeyPath string `json:"keypath"`
+}
+
+var Cfg Config
+var RemoteCfg RemoteConfig
 
 func ConfigExists() bool {
   _, err := os.Stat("conf/Config.json")
@@ -89,27 +98,18 @@ func WriteConfig(cfg *Config) error {
   if err != nil {
     return err
   }
-  err = os.WriteFile("conf/Config.json", js, 0640)
-  if err != nil {
-    return err
-  }
-  return nil
+  return os.WriteFile("conf/Config.json", js, 0640)
 }
 
-func GetConfig() (*Config, error) {
+func GetConfig() error {
   if !ConfigExists() {
-    return &Config{}, os.ErrNotExist
+    return errors.New("Config does not exist")
   }
   js, err := os.ReadFile("conf/Config.json")
   if err != nil {
-    return &Config{}, err
+    return err
   }
-  var cfg Config
-  err = json.Unmarshal(js, &cfg)
-  if err != nil {
-    return &Config{}, err
-  }
-  return &cfg, nil
+  return json.Unmarshal(js, &Cfg)
 }
 
 func Prepare() error {
@@ -118,4 +118,34 @@ func Prepare() error {
   }
   cfg := SetConfigTerm()
   return WriteConfig(cfg)
+}
+
+func SetRemoteConf() {
+  fmt.Println(" Remote user name")
+  var u string
+  fmt.Scanf("%s", &u)
+  fmt.Println(" Remote server addres")
+  var a string
+  fmt.Scanf("%s", &a)
+  fmt.Println(" Path to wallt db on remote machine")
+  var p string
+  fmt.Scanf("%s", &p)
+  fmt.Println(" Path to local public SSH key")
+  var k string
+  fmt.Scanf("%s", &k)
+  rcf := RemoteConfig{u, a, p, k}
+  jrc, _ := json.Marshal(rcf)
+  os.WriteFile("conf/RemoteConf.json", jrc, 0640)
+}
+
+func GetRemoteCfg() error {
+  _, err := os.Stat("conf/RemoteConf.json")
+  if os.IsNotExist(err) {
+    SetRemoteConf()
+  }
+  js, err := os.ReadFile("conf/RemoteConf.json")
+  if err != nil {
+    return err
+  }
+  return json.Unmarshal(js, &RemoteCfg)
 }

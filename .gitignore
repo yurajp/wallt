@@ -1,5 +1,2 @@
-*.db
+data/*
 wallt
-checkword.json
-
-

@@ -9,7 +9,6 @@ import (
   "time"
 )
 
-
 var (
   app *App
   port string
@@ -23,14 +22,14 @@ func main() {
       fmt.Println(err)
       return
     }
-    cfg, err := conf.GetConfig()
+    err = conf.GetConfig()
     if err != nil {
       fmt.Println(err)
       return
     }
-    port = cfg.Port
-    livetime = cfg.Livetime
-    db, err := sql.Open("sqlite3", "wallt.db")
+    port = conf.Cfg.Port
+    livetime = conf.Cfg.Livetime
+    db, err := sql.Open("sqlite3", "data/wallt.db")
     if err != nil {
         fmt.Println(err)
        return
@@ -52,3 +51,4 @@ func main() {
     go app.Run()
     <-chanq
 }
+

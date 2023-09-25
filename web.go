@@ -16,7 +16,7 @@ func makeTempls() (map[string]*template.Template, error) {
   templs := map[string]*template.Template{}
   routes := []string{"wellcome",
   "home", "allSites", "allCards", "oneSite", "oneCard", "createSite",
-  "createCard", "allDocs", "createDoc", "passrf", "createPassrf", "message"}
+  "createCard", "allDocs", "createDoc", "passrf", "createPassrf", "message", "editDoc"}
   for _, r := range routes {
     t, err := template.ParseFiles("templates/" + r + ".html")
     if err != nil {
@@ -63,6 +63,7 @@ func NewWeb() *Web{
       "/createSite": createSiteWeb,
       "/createCard": createCardWeb,
       "/createDoc": createDocWeb,
+      "/editDoc": editDocWeb,
       "/createPassrf": createPassrfWeb,
       "/backup": BackupWeb,
       "/recode": RecodeWeb,

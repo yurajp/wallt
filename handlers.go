@@ -335,6 +335,45 @@ func showDocsWeb(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+
+func editDocWeb(w http.ResponseWriter, r *http.Request) {
+  if app.IsDead() {
+    http.Redirect(w, r, "/", 302)
+  }
+  if app.IsBusy() {
+    <-app.web.trans
+  }
+   doc := r.URL.Query().Get("doc")
+   if r.Method == http.MethodGet {
+     // ???
+     dv := purecrypt.Desymcode(app.GetDocValue(doc), app.web.word)
+      app.execTempl(w, "editDoc", DocPort{Doc{doc, dv}, port})
+   }
+   if r.Method == http.MethodPost {
+     err := r.ParseForm()
+     if err != nil {
+       http.Error(w, err.Error(), http.StatusBadRequest)
+     }
+     del := r.FormValue("delete")
+     if del == "del" {
+       err = app.DeleteDocFromDb(doc)
+       if err != nil {
+         fmt.Println("DeleteDoc(): ", err)
+         http.Error(w, err.Error(), http.StatusInternalServerError)
+       }
+       http.Redirect(w, r, Addr("docs"), 303)
+     }
+     val := r.FormValue("value")
+     err = app.UpdateDocDb(doc, purecrypt.Symcode(val, app.web.word))
+     if err != nil {
+       fmt.Println("UpdateDoc(): ", err)
+       http.Error(w, err.Error(), http.StatusInternalServerError)
+     }
+     http.Redirect(w, r, "/docs",303)
+   }
+}
+
+
 func createPassrfWeb(w http.ResponseWriter, r *http.Request) {
   if app.IsDead() {
     http.Redirect(w, r, "/", 302)
@@ -399,6 +438,8 @@ func showPassrfWeb(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+////   UTILS
+
 func RecodeWeb(w http.ResponseWriter, r *http.Request) {
   if app.IsBusy() {
     <-app.web.trans
@@ -456,12 +497,12 @@ func ShareWeb(w http.ResponseWriter, r *http.Request) {
   if app.IsBusy() {
     <-app.web.trans
   }
-  err := app.ShareDb()
+  err := DoJoinDb()
   if err != nil {
     app.execTempl(w, "message", MessPort{fmt.Sprintf("%s", err), port})
     return    
   }
-  m := "Database was shared"
+  m := "Databases was synced"
   err = app.execTempl(w, "message", MessPort{m, port})
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)

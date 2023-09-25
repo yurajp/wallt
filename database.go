@@ -2,17 +2,7 @@ package main
 
 import (
     "fmt"
-    "database/sql"
-    "time"
-    "errors"
-    "os"
-    "io"
-    "os/exec"
-  
-    _ "github.com/mattn/go-sqlite3"
-    "github.com/yurajp/wallt/purecrypt"
 )
-
 
 func (app *App) createTables() error {
   query1 := `create table if not exists sites(name text primary key, login text, pass text, link text)`
@@ -184,118 +174,29 @@ func (app *App) GetPassrfFromDb() (PassRF, error) {
   return p, nil
 }
 
-func (app *App) RecodeDb(newWord string) error {
-    nDb, err := sql.Open("sqlite3", "temp.db")
-    if err != nil {
-       return err
-    }
-    defer nDb.Close()
-    nWb := &Web{}
-    nAp := &App{nWb, nDb}
-    nAp.createTables()
-    
-    querySs := `select * from sites`
-    queryA := `insert in sites(name, login, pass, link) values(?, ?, ?, ?)`
-    rowsSs, err := app.db.Query(querySs)
-    if err != nil {
-      return err
-    }
-    for rowsSs.Next() {
-      var nm, lg, ps, lk string
-      rowsSs.Scan(&nm, &lg, &ps, &lk)
-      nlg := purecrypt.Symcode(purecrypt.Desymcode(lg, app.web.word), newWord)
-      nps := purecrypt.Symcode(purecrypt.Desymcode(ps, app.web.word), newWord)
-      _, err = nDb.Exec(queryA, nm, nlg, nps, lk)
-      if err != nil {
-        return err
-      }
-    }
-    queryCs := `select * from cards`
-    queryB := `insert in cards(name, number, expire, cvc) values(?, ?, ?, ?)`
-    rowsCs, err := app.db.Query(queryCs)
-    if err != nil {
-      return err
-    }
-    for rowsCs.Next() {
-      var nc, nb, ex, cv string
-      rowsCs.Scan(&nc, &nb, &ex, &cv)
-      nnb := purecrypt.Symcode(purecrypt.Desymcode(nb, app.web.word), newWord)
-      nex := purecrypt.Symcode(purecrypt.Desymcode(ex, app.web.word), newWord)
-      ncv := purecrypt.Symcode(purecrypt.Desymcode(cv, app.web.word), newWord)
-      _, err = nDb.Exec(queryB, nc, nnb, nex, ncv)
-      if err != nil {
-        return err
-      }
-    }
-    nDb.Close()
-    app.db.Close()
-    app.db = nil
-    err = os.Rename("temp.db", "wallx.db")
-    if err != nil {
-      return err
-    }
-    db, err := sql.Open("sqlite3", "wallx.db")
-    if err != nil {
-      return err
-    }
-    app.db = db
-    app.web.word = newWord
-    err = purecrypt.WriteCheckword(newWord)
-    if err != nil {
-      return err
-    }
-    return nil
+func (app *App) GetDocValue(d string) string {
+  query := `select name, value from docs where name = ?`
+  row := app.db.QueryRow(query, d)
+  var doc Doc
+  row.Scan(&doc.Name, &doc.Value)
+  return doc.Value
 }
 
-func (app *App) BackupDb() error {
-  ty, tm, td := time.Now().Date()
-  date := fmt.Sprintf("%v%v%v", ty - 2000, tm, td)
-  i, err := os.Stat("archive")
-  if errors.Is(err, os.ErrNotExist) || !i.IsDir() {
-    err = os.Mkdir("archive", 0775)
-    if err != nil {
-      return fmt.Errorf(" Cannot make dir:\n%s", err)
-    }
-  }
-  fpath := fmt.Sprintf("archive/%s.wallt.db", date)
-  f, err := os.Create(fpath)
-  if err != nil {
-    return err
-  }
-  defer f.Close()
-  fdb, err := os.Open("wallt.db")
-  if err != nil {
-    return err
-  }
-  defer fdb.Close()
-  _, err = io.Copy(f, fdb)
+func (app *App) DeleteDocFromDb(d string) error {
+  query := `delete from docs where name = ?`
+  _, err := app.db.Exec(query, d)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) ShareDb() error {
-  wd, _ := os.Getwd()
-  upld := "/storage/emulated/0/Uploads/"
-  cmd := exec.Command("cp", "wallt.db", upld)
-  err := cmd.Run()
-  if err != nil {
-    return fmt.Errorf(" Cannot copy\n %s",err)
-  }
-  err = os.Chdir("../../messer-mobile")
-  if err != nil {
-    return fmt.Errorf(" Cannot cd to messer\n %s", err)
-  }
+func (app *App) UpdateDocDb(name, val string) error {
   
-  cmd = exec.Command("./messer-mobile", "up")
-  err = cmd.Run()
+  sttm := `update docs set value = ? where name = ?`
+  _, err := app.db.Exec(sttm, name, val)
   if err != nil {
-    return fmt.Errorf(" Cannot start uploading\n %s", err)
-  }
-  err = os.Chdir(wd)
-  if err != nil {
-    return fmt.Errorf(" Cannot return to Wallt\n %s", err)
+    return err
   }
   return nil
 }
