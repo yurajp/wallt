@@ -22,7 +22,8 @@
   <div class="docs">
     {{ range .Docs }}
     <p class="doc">{{ .Name }}</p>
-    <input class="value" id={{.Name}} type="text" value={{ .Value }}><button class="dbut" onclick="navigator.clipboard.writeText({{ .Value }});">☰</button>
+    <input class="value" id={{.Name}} type="text" value={{ .Value }}>
+    <button class="dbut" onclick="navigator.clipboard.writeText({{ .Value }});">☰</button>
     <button class="dbut"  onclick="window.location.href='http://localhost{{ $prt }}/editDoc?doc={{.Name}}'">&#x1F174;</button>
     {{ end }}
   </div>

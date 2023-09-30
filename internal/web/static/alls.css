@@ -1,5 +1,5 @@
 html {
-  font-size: 2.0em;
+  font-size: 2.0em !important;
 }
 body {
 
@@ -58,11 +58,14 @@ h2 {
   width: 48px;
   margin: 80px auto;
 }
+.cards {
+  padding: 30px 0px;
+}
 .cards a {
-  font-size: 1.2rem;
+  font-size: 1.2em;
 }
 .cards span {
-  font-size: 1.0rem;
+  font-size: 1.0em;
 }
 .docs {
 	display: block;
@@ -82,7 +85,7 @@ h2 {
   width: 55%;
 }
 .dbut {
-  margin-left: 20px;
+  margin-left: 60px;
   font-size: 1.4rem;
   background: darkcyan;
   color: white;

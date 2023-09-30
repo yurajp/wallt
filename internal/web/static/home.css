@@ -1,5 +1,6 @@
 body {
   font-size: 32px;
+  background: antiquewhite;
 }
 
 h1 {
@@ -7,6 +8,9 @@ h1 {
 	text-align: center;
 	color: darkslateblue;
 	margin-top: 180px;
+	padding: 18px;
+	background: white;
+	box-shadow: 2px 6px 12px gray;
 }
 
 .choice {
@@ -18,17 +22,18 @@ h1 {
 	display: block;
 	margin-top: 6rem;
 	width: 10rem;
-	padding: 2rem;
-	border: 2px solid gray;
+	padding: 1.2rem 2rem;
+	border: 0px solid gray;
 	border-radius: 35px;
 	text-align: center;
-	background-color: linen;
+	background-color: maroon;
+	box-shadow: 2px 4px 12px gray;
 }
 .chapter a {
 	text-decoration: none;
 	font-size: 3.0rem;
 	font-weight: 600;
-	color: black;
+	color: white;
 }
 #utils {
   display: block;
@@ -37,12 +42,14 @@ h1 {
 #utils p {
   text-align: center;
   margin-top: 64px;
+  
 }
 #utils a {
   text-decoration: none;
 	font-size: 3.0rem;
 	font-weight: 600;
 	color: darkgreen;
+	text-shadow: 1px 1px 0px 2px white;
 }
 .top {
   display: block;
@@ -64,8 +71,9 @@ h1 {
   text-align: center;
   font-size: 2.4rem;
   font-weight: 600;
-  background-color: linen;
+  background-color: white;
   color: firebrick;
   padding: 20px;
   border-radius: 30px;
+  box-shadow: 2px 5px 9px gray;
 }

@@ -1,6 +1,8 @@
 
 body {
   font-size: 2.0em;
+  background: antiquewhite;
+  margin: 10px;
 }
 #delete {
   display: block;
@@ -42,7 +44,7 @@ body {
 }
 
 .site p {
-  font-size: 1.2em;
+  font-size: 1.6em;
   padding-left: 20px;
 }
 .del {
@@ -50,28 +52,34 @@ body {
   font-size: 2.0em;
 }
 #cpl {
-  margin: 15px 10px;
+  margin: 15px 30px;
   padding: 10px;
-  font-size: 1.4em;
+  font-size: 1.6em;
+  color:white;
+  background: peachpuff;
 }
 #cpp {
-  margin: 15px 10px;
+  margin: 15px 30px;
   padding: 10px;
-  font-size: 1.4em;
+  font-size: 1.6em;
+  color:white;
+  background: peachpuff;
 }
 #log {
   margin: 15px 10px;
   padding: 10px;
-  font-size: 1.4em;
+  font-size: 1.6em;
+  width: 75%;
 }
 #pas {
   margin: 15px 10px;
   padding: 10px;
-  font-size: 1.4em;
+  font-size: 1.6em;
+  width:75%;
 }
 #whom {
   margin: 15px 10px;
-  font-size: 1.4rem;
+  font-size: 1.6em;
   padding: 10px;
 }
 .top {
@@ -92,7 +100,7 @@ body {
   text-align: center;
   font-size: 2.8em;
   font-weight: 600;
-  background-color: linen;
+  background-color: white;
   color: firebrick;
   padding: 20px;
   border-radius: 30px;
