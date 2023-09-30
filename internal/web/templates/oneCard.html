@@ -2,47 +2,47 @@
 <html>
   <head>
     <meta charset="UTF-8">
-  <!--  <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+    <meta name="viewport" content="width=1080 height=2316">
     <meta http-equiv="refresh" content="31">
-    <link rel="stylesheet" type="text/css" href="static/oneSite.css">
-    <title>site</title>
+    <link rel="stylesheet" type="text/css" href="static/ones.css">
+    <title>card</title>
     
+  </head>
+  <body>
+    <base target="_self">
     <script type="text/javascript">
       function cpLog() {
         var cpl = document.getElementById("log");
         cpl.select();
-       // cpl.setSelectionRange(0, 9999);
-        navigator.clipboard.writeText(cpl.value);
+        cpl.setSelectionRange(0, 9999);
+        document.execCommand("copy");
       }
     document.querySelector("#cpl").AddEventListener("click", cpLog);
     
       function cpPas() {
         var cpp = document.getElementById("pas");
         cpp.select();
-       // cpp.setSelectionRange(0, 9999);
+        cpp.setSelectionRange(0, 9999);
         document.execCommand("copy");
         
       }
     document.querySelector("#cpp").AddEventListener("click", cpPas);
     
     function homeWindow() {
-      window.history.replaceState('null', '', '/');
+      window.history.replaceState(null, '', '/');
       window.location.replace("http://localhost{{ .Port }}/home");
     }
-    </script>
-  </head>
-  <body>
-    <base target="_self">
+  </script>
     <div class="site">
-    <h4>{{ .Name }}</h4>
-    <input type="text" id="log" value={{ .Login }}><button id="cpl" onclick="cpLog()">☰</button>
+      <h4>{{ .Name }}</h4>
+      <input type="text" id="log" value={{ .Number }}><button id="cpl" onclick="cpLog()">☰</button>
     <br>
-    <input type="text" id="pas" value={{ .Pass }}><button id="cpp" onclick="cpPas()">☰</button>
+      <p>{{ .Expire }}</p>
+    <input type="text" id="pas" value={{ .Cvc }}><button id="cpp" onclick="cpPas()">☰</button>
     <br><br>
-    <a href={{ .Link }}>VISIT</a>
     </div>
     <div id="delete">
-        <a href='http://localhost{{ .Port }}/deleteSite?name={{ .Name }}"'>x</a>    
+        <a href='http://localhost{{ .Port }}/deleteCard?name="{{ .Name }}"'>x</a>    
     </div>
 
     <div class="close">

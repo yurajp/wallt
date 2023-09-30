@@ -1,3 +1,12 @@
+html {
+  font-size: 2.0em;
+}
+body {
+
+  background: linen;
+}
+
+
 h4 {
 	text-align: center;
 	color: darkslateblue;
@@ -8,12 +17,12 @@ h2 {
 }
 #add {
 	display: block;
-	width: 4.0rem;
+	width: 96px;
 	background-color: firebrick;
 	margin: 20px 160px;
 	margin-top: 60px;
-	padding: 1.0rem;
-	border-radius: 40px;
+	padding: 10px 16px;
+	border-radius: 60px;
 	text-align: center;
 
 }
@@ -28,12 +37,12 @@ h2 {
 	padding: 30px 60px;
 	background-color: white;
 	border: 2px solid gray;
-	border-radius:25px;
+	border-radius: 35px;
 }
 
 .all a {
 	font-family: sans-serif;
-	font-size: 2.6em;
+	font-size: 1.6rem;
 	font-weight:600;
 	color: darkslategrey;
 	text-decoration: none;
@@ -41,7 +50,7 @@ h2 {
 .all span {
   padding-left: 30px;
   font-style: italic;
-  font-size: 2.6em;
+  font-size: 1.4rem;
   font-weight: 400;
 }
 .top {
@@ -49,7 +58,12 @@ h2 {
   width: 48px;
   margin: 80px auto;
 }
-
+.cards a {
+  font-size: 1.2rem;
+}
+.cards span {
+  font-size: 1.0rem;
+}
 .docs {
 	display: block;
 	margin: 60px 80px;
@@ -60,23 +74,23 @@ h2 {
 }
 
 .doc {
-  font-size: 2.4em;
+  font-size: 1.4rem;
 }
 .value {
-  font-size: 2.2em;
+  font-size: 1.4rem;
   padding: 5px 20px ;
-  
+  width: 55%;
 }
 .dbut {
   margin-left: 20px;
-  font-size: 2.2em;
+  font-size: 1.4rem;
   background: darkcyan;
   color: white;
 }
 
 .top a {
   text-align: center;
-  font-size: 2.8em;
+  font-size: 2.0rem;
   text-decoration: none;
   color: firebrick;
 }
@@ -87,7 +101,7 @@ h2 {
 .close button {
   margin: 0px auto;
   text-align: center;
-  font-size: 2.8em;
+  font-size: 1.4rem;
   font-weight: 600;
   background-color: linen;
   color: firebrick;

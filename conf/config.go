@@ -13,6 +13,7 @@ import (
 type Config struct {
   Port string `json: "port"`
   Livetime time.Duration `json: "livetime"`
+  Appdir string `json:"appdir"`
 }
 
 type RemoteConfig struct {
@@ -70,7 +71,12 @@ func SetConfigTerm() *Config {
     }
   }
   livetime, _ := time.ParseDuration(valtime + "m")
-  return &Config{port, livetime}
+  appdir, err := os.Getwd()
+  if err != nil {
+    fmt.Println(err)
+    return &Config{}
+  }
+  return &Config{port, livetime, appdir}
 }
 
 func PortIsCorrect(p string) bool {

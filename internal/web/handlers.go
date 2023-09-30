@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
     "fmt"
@@ -7,25 +7,23 @@ import (
     "strings"
     "html/template"
   
-    "github.com/yurajp/wallt/purecrypt"
+    "github.com/yurajp/wallt/internal/models"
+    "github.com/yurajp/wallt/internal/purecrypt"
+    "github.com/yurajp/wallt/internal/database"
 )
-
-type Export struct {
-  Exists bool
-  Port string
-}
 
 func wellcome(w http.ResponseWriter, r *http.Request) {
   exists := purecrypt.ChWordExists()
   if r.Method == http.MethodGet {
-    if wc, ok := app.web.templs["wellcome"]; ok {
-      exp := Export{exists, port}
+    if wc, ok := WEB.Templs["wellcome"]; ok {
+      exp := models.Export{exists, WEB.Server.Addr}
+      
       wc.Execute(w, exp)
     }
   }
   if r.Method == http.MethodPost {
     if !exists {
-      err := app.createTables()
+      err := database.WDB.CreateTables()
       check(err)
       err = r.ParseForm()
       check(err)
@@ -37,14 +35,14 @@ func wellcome(w http.ResponseWriter, r *http.Request) {
       }
       err = purecrypt.WriteCheckword(word1)
       check(err)
-      app.web.word = word1
+      WEB.Word = word1
       http.Redirect(w, r, "/home", 302)
     } else {
       err := r.ParseForm()
       check(err)
       word := r.FormValue("word")
       if purecrypt.IsCorrect(word) {
-        app.web.word = word
+        WEB.Word = word
         http.Redirect(w, r, "/home", 303)
       } else {
         fmt.Println("Wrong Password")
@@ -55,28 +53,30 @@ func wellcome(w http.ResponseWriter, r *http.Request) {
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
-  err := app.execTempl(w, "home", port)
+  addr := WEB.Server.Addr
+  err := WEB.ExecTempl(w, "home", addr)
   if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func exitWeb(w http.ResponseWriter, r *http.Request) {
-  app.Dies()
+  WEB.Dies()
   http.Redirect(w, r, "/", 302)
-  if len(app.web.trans) == 1 {
-    <-app.web.trans
+  if len(WEB.Trans) == 1 {
+    <-WEB.Trans
   }
 }
 
 func allSitesWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
+    fmt.Println("   DEAD!")
     return
   }
-  list, err := app.GetAllSitesFromDb()
+  list, err := database.WDB.GetAllSitesFromDb()
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
@@ -85,25 +85,26 @@ func allSitesWeb(w http.ResponseWriter, r *http.Request) {
     return strings.ToLower(list[i]) < strings.ToLower(list[j]) 
   })
   for _, s := range list {
-    names = append(names, makeSiteLink(s))
+    names = append(names, WEB.MakeSiteLink(s))
   }
-  sl := List{names, port}
-  err = app.execTempl(w, "allSites", sl)
+  sl := models.List{names, WEB.Server.Addr}
+  err = WEB.ExecTempl(w, "allSites", sl)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func createSiteWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     http.Redirect(w, r, "/", 302)
     return
   }
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+  addr := WEB.Server.Addr
   if r.Method == http.MethodGet {
-    err := app.execTempl(w, "createSite", port)
+    err := WEB.ExecTempl(w, "createSite", addr)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -117,13 +118,13 @@ func createSiteWeb(w http.ResponseWriter, r *http.Request) {
     login := r.FormValue("login")
     pass := r.FormValue("pass")
     link := r.FormValue("link")
-    s := &Site{name, purecrypt.Symcode(login, app.web.word), purecrypt.Symcode(pass, app.web.word), link}
-    err = app.AddSiteToDb(s)
+    s := &models.Site{name, purecrypt.Symcode(login, WEB.Word), purecrypt.Symcode(pass, WEB.Word), link}
+    err = database.WDB.AddSiteToDb(s)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
     mp := fmt.Sprintf("Site %s was created", name)
-    err = app.execTempl(w, "message", MessPort{mp, port})
+    err = WEB.ExecTempl(w, "message", models.MessPort{mp, addr})
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -131,47 +132,50 @@ func createSiteWeb(w http.ResponseWriter, r *http.Request) {
 }
 
 func showSiteWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
+  addr := WEB.Server.Addr
   name := r.URL.Query().Get("name")
   defer r.Body.Close()
-  s, err := app.GetSiteFromDb(name)
+  s, err := database.WDB.GetSiteFromDb(name)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
-  dl := purecrypt.Desymcode(s.Login, app.web.word)
-  dp := purecrypt.Desymcode(s.Pass, app.web.word)
-  sw := Site{s.Name, dl, dp, s.Link}
-  sp := SitePort{sw, port}
-  err = app.execTempl(w, "oneSite", sp)
+  dl := purecrypt.Desymcode(s.Login, WEB.Word)
+  dp := purecrypt.Desymcode(s.Pass, WEB.Word)
+  sw := models.Site{s.Name, dl, dp, s.Link}
+  sp := models.SitePort{sw, addr}
+  err = WEB.ExecTempl(w, "oneSite", sp)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func deleteSiteWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
+  addr := WEB.Server.Addr
   name := r.URL.Query().Get("name")
   defer r.Body.Close()
-  err := app.RemoveSiteFromDb(strings.Trim(name, "\""))
+  err := database.WDB.RemoveSiteFromDb(strings.Trim(name, "\""))
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
   ms := fmt.Sprintf("Site %s was deleted", name)
-  err = app.execTempl(w, "message", MessPort{ms, port})
+  err = WEB.ExecTempl(w, "message", models.MessPort{ms, addr})
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func allCardsWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
-  list, err := app.GetAllCardsFromDb()
+  addr := WEB.Server.Addr
+  list, err := database.WDB.GetAllCardsFromDb()
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
@@ -180,26 +184,27 @@ func allCardsWeb(w http.ResponseWriter, r *http.Request) {
     return strings.ToLower(list[i].Name)[0] < strings.ToLower(list[j].Name)[0] 
   })
   for _, c := range list {
-    names = append(names, makeCardLink(c))
+    names = append(names, WEB.MakeCardLink(c))
   }
-  listCards := List{names, port}
-  err = app.execTempl(w, "allCards", listCards)
+  listCards := models.List{names, addr}
+  err = WEB.ExecTempl(w, "allCards", listCards)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func createCardWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     http.Redirect(w, r, "/", 302)
     return
   }
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+  addr := WEB.Server.Addr
   mistake := ""
   if r.Method == http.MethodGet {
-    err := app.execTempl(w, "createCard", MistPort{"", port})
+    err := WEB.ExecTempl(w, "createCard", models.MistPort{"", addr})
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -215,26 +220,26 @@ func createCardWeb(w http.ResponseWriter, r *http.Request) {
     year := r.FormValue("year")
     expire := fmt.Sprintf("%s / %s", month, year)
     cvc := r.FormValue("cvc")
-    c := &Card{name, number, expire, cvc}
+    c := &models.Card{name, number, expire, cvc}
     mistake = c.CheckCard()
     if mistake != "" {
-      mp := MistPort{mistake, port}
-      err = app.execTempl(w, "createCard", mp)
+      mp := models.MistPort{mistake, Port}
+      err = WEB.ExecTempl(w, "createCard", mp)
       if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
       }
       return
     }
-    encNum := purecrypt.Symcode(cleanNum(c.Number), app.web.word)
-    encExp := purecrypt.Symcode(c.Expire, app.web.word)
-    encCvc := purecrypt.Symcode(c.Cvc, app.web.word)
-    ccr := Card{name, encNum, encExp, encCvc}
-    err = app.AddCardToDb(ccr)
+    encNum := purecrypt.Symcode(cleanNum(c.Number), WEB.Word)
+    encExp := purecrypt.Symcode(c.Expire, WEB.Word)
+    encCvc := purecrypt.Symcode(c.Cvc, WEB.Word)
+    ccr := models.Card{name, encNum, encExp, encCvc}
+    err = database.WDB.AddCardToDb(ccr)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
     m := fmt.Sprintf("Card %s was created", name)
-    err = app.execTempl(w, "message", MessPort{m, port})
+    err = WEB.ExecTempl(w, "message", models.MessPort{m, addr})
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -242,52 +247,55 @@ func createCardWeb(w http.ResponseWriter, r *http.Request) {
 }
 
 func showCardWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
+  addr := WEB.Server.Addr
   name := r.URL.Query().Get("name")
-  c, err := app.GetCardFromDb(name)
+  c, err := database.WDB.GetCardFromDb(name)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
-  dn := purecrypt.Desymcode(c.Number, app.web.word)
-  de := purecrypt.Desymcode(c.Expire, app.web.word)
-  dc := purecrypt.Desymcode(c.Cvc, app.web.word)
-  dcd := Card{c.Name, spaceNum(dn), de, dc}
-  cp := CardPort{dcd, port}
-  err = app.execTempl(w, "oneCard", cp)
+  dn := purecrypt.Desymcode(c.Number, WEB.Word)
+  de := purecrypt.Desymcode(c.Expire, WEB.Word)
+  dc := purecrypt.Desymcode(c.Cvc, WEB.Word)
+  dcd := models.Card{c.Name, spaceNum(dn), de, dc}
+  cp := models.CardPort{dcd, addr}
+  err = WEB.ExecTempl(w, "oneCard", cp)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func deleteCardWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
+  addr := WEB.Server.Addr
   name := r.URL.Query().Get("name")
-  err := app.RemoveCardFromDb(strings.Trim(name, "\""))
+  err := database.WDB.RemoveCardFromDb(strings.Trim(name, "\""))
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return
   }
   ms := fmt.Sprintf("Card %s was deleted", name)
-  err = app.execTempl(w, "message", MessPort{ms, port})
+  err = WEB.ExecTempl(w, "message", models.MessPort{ms, addr})
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func createDocWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     http.Redirect(w, r, "/", 302)
     return
   }
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+  addr := WEB.Server.Addr
   if r.Method == http.MethodGet {
-    err := app.execTempl(w, "createDoc", port)
+    err := WEB.ExecTempl(w, "createDoc", addr)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -300,14 +308,14 @@ func createDocWeb(w http.ResponseWriter, r *http.Request) {
     }
     nm := r.FormValue("name")
     val := r.FormValue("value")
-    d := &Doc{nm, purecrypt.Symcode(val, app.web.word)}
-    err = app.AddDocToDb(d)
+    d := &models.Doc{nm, purecrypt.Symcode(val, WEB.Word)}
+    err = database.WDB.AddDocToDb(d)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return
     }
     m := fmt.Sprintf("Doc %s was created", nm)
-    err = app.execTempl(w, "message", MessPort{m, port})
+    err = WEB.ExecTempl(w, "message", models.MessPort{m, Port})
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -315,21 +323,22 @@ func createDocWeb(w http.ResponseWriter, r *http.Request) {
 }
 
 func showDocsWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
-  dcs, err := app.GetDocsFromDb() 
+  addr := WEB.Server.Addr
+  dcs, err := database.WDB.GetDocsFromDb() 
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return
   }
-  ddx := []Doc{}
+  ddx := []models.Doc{}
   for _, d := range dcs {
-    dd := Doc{d.Name, purecrypt.Desymcode(d.Value, app.web.word)}
+    dd := models.Doc{d.Name, purecrypt.Desymcode(d.Value, WEB.Word)}
     ddx = append(ddx, dd)
   }
-  dsp := DocsPort{ddx, port}
-  err = app.execTempl(w, "allDocs", dsp)
+  dsp := models.DocsPort{ddx, addr}
+  err = WEB.ExecTempl(w, "allDocs", dsp)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
@@ -337,17 +346,18 @@ func showDocsWeb(w http.ResponseWriter, r *http.Request) {
 
 
 func editDocWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     http.Redirect(w, r, "/", 302)
   }
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+   addr := WEB.Server.Addr
    doc := r.URL.Query().Get("doc")
    if r.Method == http.MethodGet {
      // ???
-     dv := purecrypt.Desymcode(app.GetDocValue(doc), app.web.word)
-      app.execTempl(w, "editDoc", DocPort{Doc{doc, dv}, port})
+     dv := purecrypt.Desymcode(database.WDB.GetDocValue(doc), WEB.Word)
+      WEB.ExecTempl(w, "editDoc", models.DocPort{models.Doc{doc, dv}, addr})
    }
    if r.Method == http.MethodPost {
      err := r.ParseForm()
@@ -356,15 +366,15 @@ func editDocWeb(w http.ResponseWriter, r *http.Request) {
      }
      del := r.FormValue("delete")
      if del == "del" {
-       err = app.DeleteDocFromDb(doc)
+       err = database.WDB.DeleteDocFromDb(doc)
        if err != nil {
          fmt.Println("DeleteDoc(): ", err)
          http.Error(w, err.Error(), http.StatusInternalServerError)
        }
-       http.Redirect(w, r, Addr("docs"), 303)
+       http.Redirect(w, r, "/docs", 303)
      }
      val := r.FormValue("value")
-     err = app.UpdateDocDb(doc, purecrypt.Symcode(val, app.web.word))
+     err = database.WDB.UpdateDocDb(doc, purecrypt.Symcode(val, WEB.Word))
      if err != nil {
        fmt.Println("UpdateDoc(): ", err)
        http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -375,15 +385,16 @@ func editDocWeb(w http.ResponseWriter, r *http.Request) {
 
 
 func createPassrfWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     http.Redirect(w, r, "/", 302)
     return
   }
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+  addr := WEB.Server.Addr
   if r.Method == http.MethodGet {
-    err := app.execTempl(w, "createPassrf", port)
+    err := WEB.ExecTempl(w, "createPassrf", addr)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return
@@ -399,16 +410,16 @@ func createPassrfWeb(w http.ResponseWriter, r *http.Request) {
     wn := r.FormValue("date")
     wm := r.FormValue("whom")
     cd := r.FormValue("code")
-    wd := app.web.word
-    ps := &PassRF{purecrypt.Symcode(sn, wd), purecrypt.Symcode(wn, wd),
+    wd := WEB.Word
+    ps := &models.PassRF{purecrypt.Symcode(sn, wd), purecrypt.Symcode(wn, wd),
       purecrypt.Symcode(wm, wd), purecrypt.Symcode(cd, wd)}
-    err = app.AddPassrfToDb(ps)
+    err = database.WDB.AddPassrfToDb(ps)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return
     }
     m := "PassRF was created"
-    err = app.execTempl(w, "message", MessPort{m, port})
+    err = WEB.ExecTempl(w, "message", models.MessPort{m, Port})
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
     }
@@ -416,23 +427,24 @@ func createPassrfWeb(w http.ResponseWriter, r *http.Request) {
 }
 
 func showPassrfWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsDead() {
+  if WEB.IsDead() {
     return
   }
-  p, err := app.GetPassrfFromDb()
+  addr := WEB.Server.Addr
+  p, err := database.WDB.GetPassrfFromDb()
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
     return
   }
-  wd := app.web.word
-  dp := PassRF{purecrypt.Desymcode(p.SerialNum, wd), purecrypt.Desymcode(p.Date, wd), 
+  wd := WEB.Word
+  dp := models.PassRF{purecrypt.Desymcode(p.SerialNum, wd), purecrypt.Desymcode(p.Date, wd), 
     purecrypt.Desymcode(p.Whom, wd), purecrypt.Desymcode(p.Code, wd)}
   if dp.SerialNum == "" {
     http.Redirect(w, r, "/createPassrf", 302)
     return
   }
-  pp := PassPort{dp, port} 
-  err = app.execTempl(w, "passrf", pp)
+  pp := models.PassPort{dp, addr} 
+  err = WEB.ExecTempl(w, "passrf", pp)
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
@@ -441,11 +453,12 @@ func showPassrfWeb(w http.ResponseWriter, r *http.Request) {
 ////   UTILS
 
 func RecodeWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
+  addr := WEB.Server.Addr
   if r.Method == http.MethodGet {
-    if wc, ok := app.web.templs["wellcome"]; ok {
+    if wc, ok := WEB.Templs["wellcome"]; ok {
       wc.Execute(w, false)
     } 
   }
@@ -458,57 +471,60 @@ func RecodeWeb(w http.ResponseWriter, r *http.Request) {
     word2 := r.FormValue("word2")
     ms := "Password length must be 5 or more"
     if len(word1) < 5 {
-      mp := MessPort{ms, port}
-      app.execTempl(w, "message", mp)
+      mp := models.MessPort{ms, addr}
+      WEB.ExecTempl(w, "message", mp)
     }
     if word1 != word2 {
       m := "Passwords not matched"
-      app.execTempl(w, "message", MessPort{m, port})
+      WEB.ExecTempl(w, "message", models.MessPort{m, addr})
     }
-    err = app.RecodeDb(word1)
+    err = database.WDB.RecodeDb(WEB.Word, word1)
     if err != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return
     }
-    mg := "Passwords was changed"
-    app.execTempl(w, "message", MessPort{mg, port})
+    
+    mg := "Passwords was changed. Please restart Wallt"
+    WEB.ExecTempl(w, "message", models.MessPort{mg, addr})
   }
 }
 
 func BackupWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
-  err := app.BackupDb()
+  addr := WEB.Server.Addr
+  err := database.BackupDb()
   if err != nil {
-    terr := app.execTempl(w, "message", MessPort{fmt.Sprintf("%s", err), port})
+    terr := WEB.ExecTempl(w, "message", models.MessPort{fmt.Sprintf("%s", err), addr})
     if terr != nil {
       http.Error(w, err.Error(), http.StatusInternalServerError)
       return
     }
   }
-  err = app.execTempl(w, "message", MessPort{"Done", port})
+  err = WEB.ExecTempl(w, "message", models.MessPort{"Done", Port})
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func ShareWeb(w http.ResponseWriter, r *http.Request) {
-  if app.IsBusy() {
-    <-app.web.trans
+  if WEB.IsBusy() {
+    <-WEB.Trans
   }
-  err := DoJoinDb()
+  addr := WEB.Server.Addr
+  err := database.DoJoinDb()
   if err != nil {
-    app.execTempl(w, "message", MessPort{fmt.Sprintf("%s", err), port})
+    WEB.ExecTempl(w, "message", models.MessPort{fmt.Sprintf("%s", err), addr})
     return    
   }
   m := "Databases was synced"
-  err = app.execTempl(w, "message", MessPort{m, port})
+  err = WEB.ExecTempl(w, "message", models.MessPort{m, addr})
   if err != nil {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
 
 func quitApp(w http.ResponseWriter, r *http.Request) {
-  chanq <-struct{}{}
+  WEB.Quit <-struct{}{}
 }

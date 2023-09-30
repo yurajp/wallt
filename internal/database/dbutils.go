@@ -1,4 +1,4 @@
-package main
+package database
 
 import (
     "fmt"
@@ -7,44 +7,44 @@ import (
     "errors"
     "os"
     "io"
-    "os/exec"
+    
     "github.com/yurajp/wallt/conf"
+    "github.com/yurajp/wallt/internal/models"
     _ "github.com/mattn/go-sqlite3"
-    "github.com/yurajp/wallt/purecrypt"
+    "github.com/yurajp/wallt/internal/purecrypt"
     "github.com/melbahja/goph"
 )
 
 var (
   tempath = "data/remote.db"
   locdb = "data/wallt.db"
-  user string
-  raddr string
-  rdbpath string
-  keypath string
+  user = conf.RemoteCfg.User
+  raddr = conf.RemoteCfg.Addr
+  rdbpath = conf.RemoteCfg.RDbPath
+  keypath = conf.RemoteCfg.KeyPath
 )
 
-/// TODO Add docs & Passport
-func (app *App) RecodeDb(newWord string) error {
+
+func (wdb *Wdb) RecodeDb(word, newWord string) error {
     nDb, err := sql.Open("sqlite3", "data/temp.db")
     if err != nil {
        return err
     }
     defer nDb.Close()
-    nWb := &Web{}
-    nAp := &App{nWb, nDb}
-    nAp.createTables()
+    nWdb:= &Wdb{nDb}
+    nWdb.CreateTables()
     
     querySs := `select * from sites`
     queryA := `insert in sites(name, login, pass, link) values(?, ?, ?, ?)`
-    rowsSs, err := app.db.Query(querySs)
+    rowsSs, err := wdb.Db.Query(querySs)
     if err != nil {
       return err
     }
     for rowsSs.Next() {
       var nm, lg, ps, lk string
       rowsSs.Scan(&nm, &lg, &ps, &lk)
-      nlg := purecrypt.Symcode(purecrypt.Desymcode(lg, app.web.word), newWord)
-      nps := purecrypt.Symcode(purecrypt.Desymcode(ps, app.web.word), newWord)
+      nlg := purecrypt.Symcode(purecrypt.Desymcode(lg, word), newWord)
+      nps := purecrypt.Symcode(purecrypt.Desymcode(ps, word), newWord)
       _, err = nDb.Exec(queryA, nm, nlg, nps, lk)
       if err != nil {
         return err
@@ -52,34 +52,64 @@ func (app *App) RecodeDb(newWord string) error {
     }
     queryCs := `select * from cards`
     queryB := `insert in cards(name, number, expire, cvc) values(?, ?, ?, ?)`
-    rowsCs, err := app.db.Query(queryCs)
+    rowsCs, err := wdb.Db.Query(queryCs)
     if err != nil {
       return err
     }
     for rowsCs.Next() {
       var nc, nb, ex, cv string
       rowsCs.Scan(&nc, &nb, &ex, &cv)
-      nnb := purecrypt.Symcode(purecrypt.Desymcode(nb, app.web.word), newWord)
-      nex := purecrypt.Symcode(purecrypt.Desymcode(ex, app.web.word), newWord)
-      ncv := purecrypt.Symcode(purecrypt.Desymcode(cv, app.web.word), newWord)
+      nnb := purecrypt.Symcode(purecrypt.Desymcode(nb, word), newWord)
+      nex := purecrypt.Symcode(purecrypt.Desymcode(ex, word), newWord)
+      ncv := purecrypt.Symcode(purecrypt.Desymcode(cv, word), newWord)
       _, err = nDb.Exec(queryB, nc, nnb, nex, ncv)
       if err != nil {
         return err
       }
     }
+    
+    queryPp := `select * from passrf`
+    queryC := `insert into passrf(serialnum, date, whom, code) values(?, ?, ?, ?)`
+    rowsPp, err := wdb.Db.Query(queryPp)
+    if err != nil {
+      return err
+    }
+    var nsn, ndt, nwh, ncd string
+    var sn, dt, wh, cd string
+    for rowsPp.Next() {
+      rowsPp.Scan(&sn, &dt, &wh, &cd)
+      nsn = purecrypt.Symcode(purecrypt.Desymcode(sn, word), newWord)
+      ndt = purecrypt.Symcode(purecrypt.Desymcode(dt, word), newWord)
+      nwh = purecrypt.Symcode(purecrypt.Desymcode(wh, word), newWord)
+      ncd = purecrypt.Symcode(purecrypt.Desymcode(cd, word), newWord)
+    }
+    _, err = nDb.Exec(queryC, nsn, ndt, nwh, ncd)
+    if err != nil {
+      return err
+    }
+    
+    queryDs := `select * from docs`
+    queryD := `insert in docs(name, value) values(?, ?)`
+    rowsDs, err := wdb.Db.Query(queryDs)
+    if err != nil {
+      return err
+    }
+    for rowsDs.Next() {
+      var dn, dv string
+      rowsCs.Scan(&dn, &dv)
+      ndn := purecrypt.Symcode(purecrypt.Desymcode(dn, word), newWord)
+      ndv := purecrypt.Symcode(purecrypt.Desymcode(dv, word), newWord)
+      _, err = nDb.Exec(queryD, ndn, ndv)
+      if err != nil {
+        return err
+      }
+    }
     nDb.Close()
-    app.db.Close()
-    app.db = nil
+    wdb.Db.Close()
     err = os.Rename("data/temp.db", "data/wallt.db")
     if err != nil {
       return err
     }
-    db, err := sql.Open("sqlite3", "data/wallt.db")
-    if err != nil {
-      return err
-    }
-    app.db = db
-    app.web.word = newWord
     err = purecrypt.WriteCheckword(newWord)
     if err != nil {
       return err
@@ -87,7 +117,8 @@ func (app *App) RecodeDb(newWord string) error {
     return nil
 }
 
-func (app *App) BackupDb() error {
+
+func BackupDb() error {
   ty, tm, td := time.Now().Date()
   date := fmt.Sprintf("%v%v%v", ty - 2000, tm, td)
   i, err := os.Stat("archive")
@@ -115,31 +146,6 @@ func (app *App) BackupDb() error {
   return nil
 }
 
-//// DELETE FUNC
-func (app *App) ShareDb() error {
-  wd, _ := os.Getwd()
-  upld := "/storage/emulated/0/Uploads/"
-  cmd := exec.Command("cp", "data/wallt.db", upld)
-  err := cmd.Run()
-  if err != nil {
-    return fmt.Errorf(" Cannot copy\n %s",err)
-  }
-  err = os.Chdir("../../messer-mobile")
-  if err != nil {
-    return fmt.Errorf(" Cannot cd to messer\n %s", err)
-  }
-  
-  cmd = exec.Command("./messer-mobile", "up")
-  err = cmd.Run()
-  if err != nil {
-    return fmt.Errorf(" Cannot start uploading\n %s", err)
-  }
-  err = os.Chdir(wd)
-  if err != nil {
-    return fmt.Errorf(" Cannot return to Wallt\n %s", err)
-  }
-  return nil
-}
 
 func getRemoteDb() error {
   if _, err := os.Stat(tempath); err != nil {
@@ -168,8 +174,8 @@ func getRemoteDb() error {
   return nil
 }
 
-func loadSites(dbpath string) ([]Site, error) {
-  sites := []Site{}
+func loadSites(dbpath string) ([]models.Site, error) {
+  sites := []models.Site{}
   db, err := sql.Open("sqlite3", dbpath)
   if err != nil {
     return sites, fmt.Errorf("open %s db: %s", dbpath, err)
@@ -182,15 +188,15 @@ func loadSites(dbpath string) ([]Site, error) {
   }
   defer rows.Close()
   for rows.Next() {
-    var st Site
+    var st models.Site
     rows.Scan(&st.Name, &st.Login, &st.Pass, &st.Link)
     sites = append(sites, st)
   }
   return sites, nil
 }
 
-func loadDocs(dbpath string) ([]Doc, error) {
-  docs := []Doc{}
+func loadDocs(dbpath string) ([]models.Doc, error) {
+  docs := []models.Doc{}
   db, err := sql.Open("sqlite3", dbpath)
   if err != nil {
     return docs, fmt.Errorf("open %s db: %s", dbpath, err)
@@ -203,15 +209,15 @@ func loadDocs(dbpath string) ([]Doc, error) {
   }
   defer rows.Close()
   for rows.Next() {
-    var dc Doc
+    var dc models.Doc
     rows.Scan(&dc.Name, &dc.Value)
     docs = append(docs, dc)
   }
   return docs, nil
 }
 
-func missingSites() ([]Site, int, int, error) {
-  mst := []Site{}
+func missingSites() ([]models.Site, int, int, error) {
+  mst := []models.Site{}
   err := getRemoteDb()
   if err != nil {
     return mst, 0, 0, err
@@ -238,8 +244,8 @@ func missingSites() ([]Site, int, int, error) {
   return mst, len(rems), len(locs), nil
 }
 
-func missingDocs() ([]Doc, int, int, error) {
-  mdc := []Doc{}
+func missingDocs() ([]models.Doc, int, int, error) {
+  mdc := []models.Doc{}
   err := getRemoteDb()
   if err != nil {
     return mdc, 0, 0, err
@@ -266,7 +272,7 @@ func missingDocs() ([]Doc, int, int, error) {
   return mdc, len(rems), len(locs), nil
 }
 
-func joinSites(sts []Site) error {
+func joinSites(sts []models.Site) error {
   db, err := sql.Open("sqlite3", locdb)
   if err != nil {
     return fmt.Errorf("open wallt.db: %s", err)
@@ -289,7 +295,7 @@ func joinSites(sts []Site) error {
   return nil
 }
 
-func joinDocs(ds []Doc) error {
+func joinDocs(ds []models.Doc) error {
   db, err := sql.Open("sqlite3", locdb)
   if err != nil {
     return fmt.Errorf("open wallt.db: %s", err)
@@ -317,11 +323,7 @@ func DoJoinDb() error {
   if err != nil {
     return fmt.Errorf("remote config: %s", err)
   }
-  user = conf.RemoteCfg.User
-  raddr = conf.RemoteCfg.Addr
-  rdbpath = conf.RemoteCfg.RDbPath
-  keypath = conf.RemoteCfg.KeyPath
-
+  
   deal := false
   missts, nr, nl, err := missingSites()
   if err != nil {

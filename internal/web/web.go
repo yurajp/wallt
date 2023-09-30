@@ -1,24 +1,33 @@
-package main
+package web
 
 import (
     "fmt"
     "net/http"
     "html/template"
-    "os/exec"
     "time"
     "context"
   
     _ "github.com/mattn/go-sqlite3"
+    "github.com/yurajp/wallt/conf"
+    "github.com/yurajp/wallt/internal/models"
 )
 
+type Web models.Web
+
+var (
+  WEB *Web
+  Livetime = conf.Cfg.Livetime
+  Port = conf.Cfg.Port
+)
 
 func makeTempls() (map[string]*template.Template, error) {
   templs := map[string]*template.Template{}
   routes := []string{"wellcome",
   "home", "allSites", "allCards", "oneSite", "oneCard", "createSite",
   "createCard", "allDocs", "createDoc", "passrf", "createPassrf", "message", "editDoc"}
+  tdir := conf.Cfg.Appdir + "/internal/web/templates/"
   for _, r := range routes {
-    t, err := template.ParseFiles("templates/" + r + ".html")
+    t, err := template.ParseFiles(tdir + r + ".html")
     if err != nil {
       return templs, err
     }
@@ -29,25 +38,27 @@ func makeTempls() (map[string]*template.Template, error) {
 
 func TimeControl(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    if app.IsDead() {
+    if WEB.IsDead() {
+      fmt.Println("\n   Oops! Web is DEAD!")
       http.Redirect(w, r, "/", 302)
       return
     }
-    if app.IsBusy() {
-      <-app.web.trans
+    if WEB.IsBusy() {
+      <-WEB.Trans
     }
     next.ServeHTTP(w, r)
     
     go func() {
-      if !app.IsBusy() {
-        app.web.trans <-struct{}{}
+      if !WEB.IsBusy() {
+        WEB.Trans <-struct{}{}
       }
+      lt := conf.Cfg.Livetime
       select {
-        case <-time.After(livetime):
-          app.Dies()
+        case <-time.After(lt):
+          WEB.Dies()
           fmt.Println("\t Time over!")
           return
-        case app.web.trans<-struct{}{}:
+        case WEB.Trans<-struct{}{}:
           fmt.Print(" ✓")
           return
       }
@@ -55,9 +66,10 @@ func TimeControl(next http.Handler) http.Handler {
   })
 }
 
-func NewWeb() *Web{
+func NewWeb() *Web {
+    fsdir := fmt.Sprintf("%s/internal/web/static", conf.Cfg.Appdir)
     mux := http.NewServeMux()
-    fs := http.FileServer(http.Dir("./static"))
+    fs := http.FileServer(http.Dir(fsdir))
     mux.Handle("/static/", http.StripPrefix("/static/", fs))
     muxMap := map[string]func(http.ResponseWriter, *http.Request){"/": wellcome,
       "/createSite": createSiteWeb,
@@ -88,7 +100,7 @@ func NewWeb() *Web{
       mux.Handle(p, TimeControl(http.HandlerFunc(fn)))
     }
     server := &http.Server{
-      Addr: port,
+      Addr: conf.Cfg.Port,
       Handler: mux,
     }
     templs, err := makeTempls()
@@ -97,22 +109,8 @@ func NewWeb() *Web{
       return &Web{}
     }
     ctx := context.Background()
-    trans := make(chan struct{}, 1)
-    web := Web{server, ctx, templs, "", trans}
-    return &web
-}
-
-func (app *App) Run() {
-    go func() {
-      defer close(app.web.trans)
-        err := app.web.server.ListenAndServe()
-        check(err)
-    }()
-    fmt.Printf("\t Safe time: %v min\n", livetime.Minutes())
-    cmd := exec.Command("termux-open-url", fmt.Sprintf("http://localhost%s/", port))
-    err := cmd.Run()
-    check(err)
-  //  var q string
-  //  fmt.Println("\n\t WALLT RUNS\n\t Enter any to quit")
-   // fmt.Scanf("%s", q)
+    Trans := make(chan struct{}, 1)
+    Quit := make(chan struct{}, 1)
+    
+    return &Web{server, ctx, templs, "", Trans, Quit}
 }

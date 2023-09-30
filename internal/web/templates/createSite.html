@@ -2,7 +2,8 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" type="text/css" href="static/createSite.css">
+    <meta name="viewport" content="width=1080 height=2316">
+    <link rel="stylesheet" type="text/css" href="static/creates.css">
     <title>create</title>
     <script type="text/javascript">
       function homeWindow() {
@@ -13,17 +14,21 @@
   </head>
   <body>
     <base target="_self">
-    <h3>Add doc</h3>
+    <h3>Add site</h3>
     <div class="create">
       <form method="POST">
-        <label for="name">Name </label><br>
+        <label for="name">Site name</label><br>
         <input id="name" type="text" name="name"><br>
-        <label for="value">Value</label><br>
-        <input id="value" type="text" name="value"><br>
+        <label for="login">Login</label><br>
+        <input id="login" type="text" name="login"><br>
+        <label for="pass">Password</label><br>
+        <input id="pass" type="text" name="pass"><br>
+        <label for="link">Web link</label><br>
+        <input id="link" type="text" name="link"><br>
         <br>
         <input id="button" type="submit">
       </form>
-    </div>
+    </div> 
 
     <div class="close">
       <button type="button" onclick="homeWindow();">🏠</button>

@@ -1,3 +1,7 @@
+
+body {
+  font-size: 2.0em;
+}
 #delete {
   display: block;
 	width: 2.0em;
@@ -66,9 +70,8 @@
   font-size: 1.4em;
 }
 #whom {
-  width: 400px;
   margin: 15px 10px;
-  font-size: 1.2em;
+  font-size: 1.4rem;
   padding: 10px;
 }
 .top {

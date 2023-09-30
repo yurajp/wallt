@@ -1,66 +1,77 @@
-package main
+package database
 
 import (
     "fmt"
+    "database/sql"
+    
+    "github.com/yurajp/wallt/internal/models"
 )
 
-func (app *App) createTables() error {
+type Wdb models.Wdb
+
+var WDB *Wdb
+
+func NewWdb(db *sql.DB) *Wdb {
+  return &Wdb{db}
+}
+
+func (wdb *Wdb) CreateTables() error {
   query1 := `create table if not exists sites(name text primary key, login text, pass text, link text)`
-  _, err := app.db.Exec(query1)
+  _, err := wdb.Db.Exec(query1)
   if err != nil {
     return err
   }
   query2 := `create table if not exists cards(name text primary key, number text, expire text, cvc text, unique(name, number))`
-  _, err = app.db.Exec(query2)
+  _, err = wdb.Db.Exec(query2)
   if err != nil {
     return err
   }
   query3 := `create table if not exists docs(name text primary key, value text)`
-  _, err = app.db.Exec(query3)
+  _, err = wdb.Db.Exec(query3)
   if err != nil {
     return err
   }
   query4 := `create table if not exists passrf(serialnum text primary key, date text, whom text, code text)`
-  _, err = app.db.Exec(query4)
+  _, err = wdb.Db.Exec(query4)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) AddSiteToDb(s *Site) error {
+func (wdb *Wdb) AddSiteToDb(s *models.Site) error {
     query := `insert into sites(name, login, pass, link) values(?, ?, ?, ?) on conflict(name) do update set pass=excluded.pass, login=excluded.login, link=excluded.link`
-    _, err := app.db.Exec(query, s.Name, s.Login, s.Pass, s.Link)
+    _, err := wdb.Db.Exec(query, s.Name, s.Login, s.Pass, s.Link)
     if err != nil {
       return err
     }
     return nil
 }
 
-func (app *App) GetSiteFromDb(q string) (Site, error) {
+func (wdb *Wdb) GetSiteFromDb(q string) (models.Site, error) {
   query := `select name, login, pass, link from sites where lower(name) like ?`
-  row := app.db.QueryRow(query, q + "%")
-  var s Site
+  row := wdb.Db.QueryRow(query, q + "%")
+  var s models.Site
   err := row.Scan(&s.Name, &s.Login, &s.Pass, &s.Link)
   if err != nil {
-    return Site{}, err
+    return models.Site{}, err
   }
   return s, nil
 }
 
 
-func (app *App) RemoveSiteFromDb(s string) error {
+func (wdb *Wdb) RemoveSiteFromDb(s string) error {
   query := `delete from sites where name=?`
-  _, err := app.db.Exec(query, s)
+  _, err := wdb.Db.Exec(query, s)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) GetAllSitesFromDb() ([]string, error) {
+func (wdb *Wdb) GetAllSitesFromDb() ([]string, error) {
   query := `select name from sites`
-  rows, err := app.db.Query(query)
+  rows, err := wdb.Db.Query(query)
   if err != nil {
     return []string{}, err
   }
@@ -74,127 +85,127 @@ func (app *App) GetAllSitesFromDb() ([]string, error) {
   return list, nil
 }
 
-func (app *App) GetAllCardsFromDb() ([]CardName, error) {
+func (wdb *Wdb) GetAllCardsFromDb() ([]models.CardName, error) {
   query := `select name, number from cards`
-  rows, err := app.db.Query(query)
+  rows, err := wdb.Db.Query(query)
   if err != nil {
-    return []CardName{}, err
+    return []models.CardName{}, err
   }
   defer rows.Close()
-  list := []CardName{}
+  list := []models.CardName{}
   for rows.Next() {
-    var cn CardName
+    var cn models.CardName
     rows.Scan(&cn.Name, &cn.Num)
     list = append(list, cn)
   }
   return list, nil
 }
 
-func (app *App) AddCardToDb(c Card) error {
+func (wdb *Wdb) AddCardToDb(c models.Card) error {
     query := `insert into cards(name, number, expire, cvc) values(?, ?, ?, ?) on conflict(name) do update set number=excluded.number, expire=excluded.expire, cvc=excluded.cvc`
-     _, err := app.db.Exec(query, c.Name, c.Number, c.Expire, c.Cvc)
+     _, err := wdb.Db.Exec(query, c.Name, c.Number, c.Expire, c.Cvc)
     if err != nil {
       return err
     }
     return nil
 }
 
-func (app *App) GetCardFromDb(q string) (Card, error) {
+func (wdb *Wdb) GetCardFromDb(q string) (models.Card, error) {
   query := `select name, number, expire, cvc from cards where name=?`
-  row := app.db.QueryRow(query, q)
-  var c Card
+  row := wdb.Db.QueryRow(query, q)
+  var c models.Card
   err := row.Scan(&c.Name, &c.Number, &c.Expire, &c.Cvc)
   if err != nil {
-    return Card{}, err
+    return models.Card{}, err
   }
   return c, nil
 }
 
-func (app *App) RemoveCardFromDb(c string) error {
+func (wdb *Wdb) RemoveCardFromDb(c string) error {
   query := `delete from cards where name=?`
-  _, err := app.db.Exec(query, c)
+  _, err := wdb.Db.Exec(query, c)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) AddDocToDb(d *Doc) error {
+func (wdb *Wdb) AddDocToDb(d *models.Doc) error {
   query := `insert into docs(name, value) values(?, ?)`
-  _, err := app.db.Exec(query, d.Name, d.Value)
+  _, err := wdb.Db.Exec(query, d.Name, d.Value)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) AddPassrfToDb(p *PassRF) error {
+func (wdb *Wdb) AddPassrfToDb(p *models.PassRF) error {
   query := `insert into passrf(serialnum, date, whom, code) values(?, ?, ?, ?)`
   sn := p.SerialNum
   wn := p.Date
   wm := p.Whom
   cd := p.Code
-  _, err := app.db.Exec(query, sn, wn, wm, cd)
+  _, err := wdb.Db.Exec(query, sn, wn, wm, cd)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) GetDocsFromDb() ([]Doc, error) {
+func (wdb *Wdb) GetDocsFromDb() ([]models.Doc, error) {
   query := `select * from docs`
-  rows, err := app.db.Query(query)
+  rows, err := wdb.Db.Query(query)
   if err != nil {
     fmt.Println(err)
-    return []Doc{}, err
+    return []models.Doc{}, err
   }
   defer rows.Close()
-  dcs := []Doc{}
+  dcs := []models.Doc{}
   for rows.Next() {
-    var d Doc
+    var d models.Doc
     rows.Scan(&d.Name, &d.Value)
     dcs = append(dcs, d)
   }
   return dcs, nil
 }
 
-func (app *App) GetPassrfFromDb() (PassRF, error) {
+func (wdb *Wdb) GetPassrfFromDb() (models.PassRF, error) {
   query := `select * from passrf`
-  rows, err := app.db.Query(query)
+  rows, err := wdb.Db.Query(query)
   if err != nil {
-    return PassRF{}, err
+    return models.PassRF{}, err
   }
   defer rows.Close()
-  var p PassRF
+  var p models.PassRF
   for rows.Next() {
-    var tp PassRF
+    var tp models.PassRF
     rows.Scan(&tp.SerialNum, &tp.Date, &tp.Whom, &tp.Code)
     p = tp
   }
   return p, nil
 }
 
-func (app *App) GetDocValue(d string) string {
+func (wdb *Wdb) GetDocValue(d string) string {
   query := `select name, value from docs where name = ?`
-  row := app.db.QueryRow(query, d)
-  var doc Doc
+  row := wdb.Db.QueryRow(query, d)
+  var doc models.Doc
   row.Scan(&doc.Name, &doc.Value)
   return doc.Value
 }
 
-func (app *App) DeleteDocFromDb(d string) error {
+func (wdb *Wdb) DeleteDocFromDb(d string) error {
   query := `delete from docs where name = ?`
-  _, err := app.db.Exec(query, d)
+  _, err := wdb.Db.Exec(query, d)
   if err != nil {
     return err
   }
   return nil
 }
 
-func (app *App) UpdateDocDb(name, val string) error {
+func (wdb *Wdb) UpdateDocDb(name, val string) error {
   
   sttm := `update docs set value = ? where name = ?`
-  _, err := app.db.Exec(sttm, name, val)
+  _, err := wdb.Db.Exec(sttm, name, val)
   if err != nil {
     return err
   }

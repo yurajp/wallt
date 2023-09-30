@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
   "strings"
@@ -8,17 +8,19 @@ import (
   "context"
 )
 
-type App struct {
-  web *Web
-  db *sql.DB
-}
+
 
 type Web struct {
-  server *http.Server
-  ctx context.Context
-  templs map[string]*template.Template
-  word string
-  trans chan struct{}
+  Server *http.Server
+  Ctx context.Context
+  Templs map[string]*template.Template
+  Word string
+  Trans chan struct{}
+  Quit chan struct{}
+}
+
+type Wdb struct {
+  Db *sql.DB
 }
 
 type Site struct {
@@ -35,6 +37,11 @@ type List struct {
 
 type SitePort struct {
   Site
+  Port string
+}
+
+type Export struct {
+  Exists bool
   Port string
 }
 
