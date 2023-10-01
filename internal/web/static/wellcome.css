@@ -1,25 +1,39 @@
 
 body {
   font-size: 32px;
+  background: antiquewhite;
+}
+#top {
+  display: flex;
+  justify-content: center;
+  margin: 80px;
+}
+#pic {
+  display: block;
+  width: 140px;
 }
 
 h1 {
-  font-size: 3.6rem;
+  font-size: 64px;
   margin-top: 120px;
   text-align: center;
+  background: white;
+	box-shadow: 2px 6px 12px gray;
+	padding: 18px;
 }
 .wellcome {
-  margin: 60px 240px;
+  margin: 80px 180px;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
 }
 .wellcome input {
   background-color: darkslategrey;
   color: white;
-  font-size: 2.8rem;
-  padding: 50px 30px;
+  font-size: 3.6rem;
+  padding: 40px 80px;
   font-family: Sans-Serif;
-  border-radius: 40px;
+  border-radius: 80px;
+  width: 86%;
 }
 
 #button {
@@ -33,7 +47,7 @@ h1 {
   margin: 80px 60px;
 }
 .hello p {
-  font-size: 2.4em;
+  font-size: 1.2em;
 }
 
 .close {
@@ -43,10 +57,11 @@ h1 {
 .close button {
   margin: 0px auto;
   text-align: center;
-  font-size: 2.4rem;
+  font-size: 2.6rem;
   font-weight: 600;
-  background-color: linen;
+  background-color: white;
   color: firebrick;
-  padding: 20px;
-  border-radius: 30px;
+  padding: 20px 40px;
+  border-radius: 40px;
+  box-shadow: 2px 4px 12px gray;
 }

@@ -15,6 +15,11 @@
   </head>
   <body>
     <base target="_self">
+    <div id="top">
+      <div id="pic">
+        <img src="static/walletcoins.png" width=140px>
+      </div>
+    </div>
     <h1>WALLT</h1>
     <br>
     <div class="choice">
@@ -42,7 +47,10 @@
     <br>
     </div>
   <div class="close">
-    <button type="button" onclick="exitWindow();">CLOSE</button>
+    <button type="button" onclick="exitWindow();">HIDE</button>
   </div>
+    <div class="close">
+      <button type="button" onclick="window.location.href='http://localhost{{.}}/quit'">QUIT</button>
+    </div>
   </body>
 </html>
