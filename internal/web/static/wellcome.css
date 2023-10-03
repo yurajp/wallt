@@ -34,6 +34,8 @@ h1 {
   font-family: Sans-Serif;
   border-radius: 80px;
   width: 86%;
+  box-shadow: inset 3px 20px 30px -12px rgba(252,255,252,0.65);
+ /* box-shadow: 2px 6px 12px darkgray; */
 }
 
 #button {
@@ -50,18 +52,18 @@ h1 {
   font-size: 1.2em;
 }
 
-.close {
+.qt {
   display: flex;
   justify-content: center;
 }
-.close button {
+.qt button {
   margin: 0px auto;
   text-align: center;
   font-size: 2.6rem;
   font-weight: 600;
-  background-color: white;
-  color: firebrick;
-  padding: 20px 40px;
+  background-color: brown;
+  color: white;
+  padding: 20px 60px;
   border-radius: 40px;
   box-shadow: 2px 4px 12px gray;
 }

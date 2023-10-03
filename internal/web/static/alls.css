@@ -3,7 +3,7 @@ html {
 }
 body {
 
-  background: linen;
+  background: antiquewhite;
 }
 
 
@@ -104,10 +104,11 @@ h2 {
 }
 .close button {
   margin: 0px auto;
+  margin-bottom: 60px;
   text-align: center;
-  font-size: 1.4rem;
+  font-size: 2.4rem;
   font-weight: 600;
-  background-color: linen;
+  background-color: white;
   color: firebrick;
   padding: 20px;
   border-radius: 30px;

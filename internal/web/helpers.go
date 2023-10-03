@@ -65,7 +65,7 @@ func (web *Web) MakeCardLink(cn models.CardName) template.HTML {
     return template.HTML("")
   }
   addr := web.Server.Addr
-  url := fmt.Sprintf(`<a href="http://localhost%s/card?name=%s" onclick="openRow(self.href)" target="_self">%s</a>`, addr, cn.Name, cn.Name)
+  url := fmt.Sprintf(`<a href="http://localhost%s/card?name=%s" onclick="openRow(self.href)" target="_self">%s</a>`, addr, cn.Name, strings.ToUpper(cn.Name))
   dcN := purecrypt.Desymcode(cn.Num, web.Word)
   shN := "*" + dcN[12:]
   span := fmt.Sprintf(`<span>%s</span>`, shN)
