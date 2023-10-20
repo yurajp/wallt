@@ -9,7 +9,9 @@ import (
 
 type Wdb models.Wdb
 
-var WDB *Wdb
+var (
+	WDB *Wdb
+)
 
 func NewWdb(db *sql.DB) *Wdb {
   return &Wdb{db}

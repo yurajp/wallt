@@ -6,6 +6,7 @@ import (
   "html/template"
   "database/sql"
   "context"
+	"github.com/sirupsen/logrus"
 )
 
 
@@ -16,6 +17,7 @@ type Web struct {
   Templs map[string]*template.Template
   Word string
   Trans chan struct{}
+  Log *logrus.Logger
   Quit chan struct{}
 }
 

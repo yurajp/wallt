@@ -2,6 +2,7 @@ package conf
 
 import (
   "fmt"
+  "path/filepath"
   "errors"
   "encoding/json"
   "os"
@@ -27,7 +28,7 @@ var Cfg Config
 var RemoteCfg RemoteConfig
 
 func ConfigExists() bool {
-  _, err := os.Stat("conf/Config.json")
+  _, err := os.Stat("../conf/Config.json")
   if os.IsNotExist(err) {
     return false
   }
@@ -71,7 +72,8 @@ func SetConfigTerm() *Config {
     }
   }
   livetime, _ := time.ParseDuration(valtime + "m")
-  appdir, err := os.Getwd()
+  here, err := os.Getwd()
+  appdir := filepath.Dir(here)
   if err != nil {
     fmt.Println(err)
     return &Config{}
@@ -104,14 +106,14 @@ func WriteConfig(cfg *Config) error {
   if err != nil {
     return err
   }
-  return os.WriteFile("conf/Config.json", js, 0640)
+  return os.WriteFile("../conf/Config.json", js, 0640)
 }
 
 func GetConfig() error {
   if !ConfigExists() {
     return errors.New("Config does not exist")
   }
-  js, err := os.ReadFile("conf/Config.json")
+  js, err := os.ReadFile("../conf/Config.json")
   if err != nil {
     return err
   }
@@ -145,11 +147,11 @@ func SetRemoteConf() {
 }
 
 func GetRemoteCfg() error {
-  _, err := os.Stat("conf/RemoteConf.json")
+  _, err := os.Stat("../conf/RemoteConf.json")
   if os.IsNotExist(err) {
     SetRemoteConf()
   }
-  js, err := os.ReadFile("conf/RemoteConf.json")
+  js, err := os.ReadFile("../conf/RemoteConf.json")
   if err != nil {
     return err
   }

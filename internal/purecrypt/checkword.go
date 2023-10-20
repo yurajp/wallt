@@ -14,7 +14,7 @@ type Checkword struct {
 }
 
 func ChWordExists() bool {
-  _, err := os.Stat("data/checkword.json")
+  _, err := os.Stat("../data/checkword.json")
   if os.IsNotExist(err) {
     return false
   }
@@ -36,7 +36,7 @@ func WriteCheckword(pw string) error {
   }
   phr := "Password is Correct"
   chw := Checkword{HashStr(Symcode(phr, pw))}
-  f, err := os.Create("data/checkword.json")
+  f, err := os.Create("../data/checkword.json")
   if err != nil {
     return err
   }
@@ -53,7 +53,7 @@ func WriteCheckword(pw string) error {
 }
 
 func IsCorrect(pw string) bool {
-  f, err := os.Open("data/checkword.json")
+  f, err := os.Open("../data/checkword.json")
   if err != nil {
     return false
   }

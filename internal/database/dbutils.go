@@ -16,8 +16,8 @@ import (
 )
 
 var (
-  tempath = "data/remote.db"
-  locdb = "data/wallt.db"
+  tempath = "../data/remote.db"
+  locdb = "../data/wallt.db"
   user = conf.RemoteCfg.User
   raddr = conf.RemoteCfg.Addr
   rdbpath = conf.RemoteCfg.RDbPath
@@ -26,7 +26,7 @@ var (
 
 
 func (wdb *Wdb) RecodeDb(word, newWord string) error {
-    nDb, err := sql.Open("sqlite3", "data/temp.db")
+    nDb, err := sql.Open("sqlite3", "../data/temp.db")
     if err != nil {
        return err
     }
@@ -106,7 +106,7 @@ func (wdb *Wdb) RecodeDb(word, newWord string) error {
     }
     nDb.Close()
     wdb.Db.Close()
-    err = os.Rename("data/temp.db", "data/wallt.db")
+    err = os.Rename("../data/temp.db", "../data/wallt.db")
     if err != nil {
       return err
     }
@@ -121,20 +121,20 @@ func (wdb *Wdb) RecodeDb(word, newWord string) error {
 func BackupDb() error {
   ty, tm, td := time.Now().Date()
   date := fmt.Sprintf("%v%v%v", ty - 2000, tm, td)
-  i, err := os.Stat("archive")
+  i, err := os.Stat("../archive")
   if errors.Is(err, os.ErrNotExist) || !i.IsDir() {
-    err = os.Mkdir("archive", 0775)
+    err = os.Mkdir("../archive", 0775)
     if err != nil {
       return fmt.Errorf(" Cannot make dir:\n%s", err)
     }
   }
-  fpath := fmt.Sprintf("archive/%s.wallt.db", date)
+  fpath := fmt.Sprintf("../archive/%s.wallt.db", date)
   f, err := os.Create(fpath)
   if err != nil {
     return err
   }
   defer f.Close()
-  fdb, err := os.Open("data/wallt.db")
+  fdb, err := os.Open(locdb)
   if err != nil {
     return err
   }

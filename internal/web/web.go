@@ -6,7 +6,8 @@ import (
     "html/template"
     "time"
     "context"
-  
+    "os"
+	  "github.com/sirupsen/logrus"
     _ "github.com/mattn/go-sqlite3"
     "github.com/yurajp/wallt/conf"
     "github.com/yurajp/wallt/internal/models"
@@ -110,7 +111,11 @@ func NewWeb() *Web {
     }
     ctx := context.Background()
     Trans := make(chan struct{}, 1)
+    Log := logrus.New()
+    Log.Formatter = new(logrus.TextFormatter)
+    Log.Level = logrus.InfoLevel
+    Log.Out = os.Stdout
     Quit := make(chan struct{}, 1)
     
-    return &Web{server, ctx, templs, "", Trans, Quit}
+    return &Web{server, ctx, templs, "", Trans, Log, Quit}
 }
