@@ -45,7 +45,7 @@ func (app *App) Run() {
     
     prt := app.web.Server.Addr
     log.Infof("WALLT\n\n  runs on %s safetime: %v min\n\n", prt, livetime.Minutes())
-    cmd := exec.Command("termux-open-url", fmt.Sprintf("http://localhost%s/", prt))
+    cmd := exec.Command("xdg-open", fmt.Sprintf("http://localhost%s/", prt))
     err := cmd.Run()
     if err != nil {
       log.WithError(err).Errorf("Cannot open localhost%s", prt)
@@ -69,7 +69,7 @@ func main() {
     port = conf.Cfg.Port
     livetime = conf.Cfg.Livetime
     
-    db, err := sql.Open("sqlite3", "../data/wallt.db")
+    db, err := sql.Open("sqlite3", conf.Cfg.Appdir + "/data/wallt.db")
     if err != nil {
         log.WithError(err).Error("Cannot open DB")
     }

@@ -18,10 +18,10 @@ import (
 var (
   tempath = "../data/remote.db"
   locdb = "../data/wallt.db"
-  user = conf.RemoteCfg.User
-  raddr = conf.RemoteCfg.Addr
-  rdbpath = conf.RemoteCfg.RDbPath
-  keypath = conf.RemoteCfg.KeyPath
+  user = conf.Cfg.Remote.User
+  raddr = conf.Cfg.Remote.Addr
+  rdbpath = conf.Cfg.Remote.RDbPath
+  keypath = conf.Cfg.Remote.KeyPath
 )
 
 
@@ -319,10 +319,10 @@ func joinDocs(ds []models.Doc) error {
 }
 
 func DoJoinDb() error {
-  err := conf.GetRemoteCfg()
-  if err != nil {
-    return fmt.Errorf("remote config: %s", err)
-  }
+//  err := conf.GetRemoteCfg()
+//  if err != nil {
+//    return fmt.Errorf("remote config: %s", err)
+//  }
   
   deal := false
   missts, nr, nl, err := missingSites()

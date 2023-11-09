@@ -2,40 +2,45 @@ package conf
 
 import (
   "fmt"
-  "path/filepath"
-  "errors"
-  "encoding/json"
+//  "path/filepath"
+//  "errors"
+//  "encoding/json"
   "os"
   "time"
   "regexp"
   "strconv"
+  "github.com/yurajp/confy"
 )
 
 type Config struct {
-  Port string `json: "port"`
-  Livetime time.Duration `json: "livetime"`
-  Appdir string `json:"appdir"`
+  Port string
+  Livetime time.Duration
+  Appdir string
+  Remote RemoteConfig
 }
 
 type RemoteConfig struct {
-  User string `json:"user"`
-  Addr string `json:"addr"`
-  RDbPath string `json:"rdbpath"`
-  KeyPath string `json:"keypath"`
+  User string
+  Addr string
+  RDbPath string
+  KeyPath string
 }
 
-var Cfg Config
-var RemoteCfg RemoteConfig
+var (
+	Cfg Config
+	Path = "/data/data/com.termux/files/home/golangs/wallt/conf/Config.ini"
+)
+
 
 func ConfigExists() bool {
-  _, err := os.Stat("../conf/Config.json")
+  _, err := os.Stat(Path)
   if os.IsNotExist(err) {
     return false
   }
   return true
 }
 
-func SetConfigTerm() *Config {
+func SetConfigTerm() Config {
   var port, valtime string
   done := false
   for !done {
@@ -57,10 +62,10 @@ func SetConfigTerm() *Config {
   done = false
   var t string
   for !done {
-    fmt.Println("\n  Print time in minutes\n  when password is valid\n  or enter for default (3 min)")
+    fmt.Println("\n  Print time in minutes\n  when password is valid\n  or enter for default (5 min)")
     fmt.Scanf("%s", &t)
     if t == "" {
-      valtime = "3"
+      valtime = "5"
       done = true
     } else {
       if TimeIsCorrect(t) {
@@ -73,12 +78,18 @@ func SetConfigTerm() *Config {
   }
   livetime, _ := time.ParseDuration(valtime + "m")
   here, err := os.Getwd()
-  appdir := filepath.Dir(here)
   if err != nil {
     fmt.Println(err)
-    return &Config{}
+    return Config{}
   }
-  return &Config{port, livetime, appdir}
+//  appdir := filepath.Dir(here)
+  appdir := here
+  fmt.Printf(" APPDIR is %s\n enter to continue\n", appdir)
+  var cte string
+  fmt.Scanf("%s", &cte)
+
+  rcf := SetRemoteConf()
+  return Config{port, livetime, appdir, rcf}
 }
 
 func PortIsCorrect(p string) bool {
@@ -101,23 +112,16 @@ func TimeIsCorrect(t string) bool {
   return true
 }
 
-func WriteConfig(cfg *Config) error {
-  js, err := json.Marshal(cfg)
-  if err != nil {
-    return err
-  }
-  return os.WriteFile("../conf/Config.json", js, 0640)
-}
 
 func GetConfig() error {
-  if !ConfigExists() {
-    return errors.New("Config does not exist")
-  }
-  js, err := os.ReadFile("../conf/Config.json")
+  c := Config{}
+  confy.Path = Path
+  intf, err := confy.LoadConfy(c)
   if err != nil {
     return err
   }
-  return json.Unmarshal(js, &Cfg)
+  Cfg = intf.(Config)
+  return nil
 }
 
 func Prepare() error {
@@ -125,10 +129,11 @@ func Prepare() error {
     return nil
   }
   cfg := SetConfigTerm()
-  return WriteConfig(cfg)
+  confy.Path = Path
+  return confy.WriteConfy(cfg)
 }
 
-func SetRemoteConf() {
+func SetRemoteConf() RemoteConfig {
   fmt.Println(" Remote user name")
   var u string
   fmt.Scanf("%s", &u)
@@ -141,19 +146,7 @@ func SetRemoteConf() {
   fmt.Println(" Path to local public SSH key")
   var k string
   fmt.Scanf("%s", &k)
-  rcf := RemoteConfig{u, a, p, k}
-  jrc, _ := json.Marshal(rcf)
-  os.WriteFile("conf/RemoteConf.json", jrc, 0640)
+  return RemoteConfig{u, a, p, k}
+  
 }
 
-func GetRemoteCfg() error {
-  _, err := os.Stat("../conf/RemoteConf.json")
-  if os.IsNotExist(err) {
-    SetRemoteConf()
-  }
-  js, err := os.ReadFile("../conf/RemoteConf.json")
-  if err != nil {
-    return err
-  }
-  return json.Unmarshal(js, &RemoteCfg)
-}

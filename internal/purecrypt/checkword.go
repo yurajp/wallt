@@ -7,6 +7,7 @@ import (
   "errors"
   "crypto/sha256"
   "encoding/base64"
+  "github.com/yurajp/wallt/conf"
 )
 
 type Checkword struct {
@@ -14,7 +15,7 @@ type Checkword struct {
 }
 
 func ChWordExists() bool {
-  _, err := os.Stat("../data/checkword.json")
+  _, err := os.Stat(conf.Cfg.Appdir + "/data/checkword.json")
   if os.IsNotExist(err) {
     return false
   }
@@ -53,7 +54,7 @@ func WriteCheckword(pw string) error {
 }
 
 func IsCorrect(pw string) bool {
-  f, err := os.Open("../data/checkword.json")
+  f, err := os.Open(conf.Cfg.Appdir + "/data/checkword.json")
   if err != nil {
     return false
   }
