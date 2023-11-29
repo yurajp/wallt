@@ -10,7 +10,6 @@ import (
 )
 
 
-
 type Web struct {
   Server *http.Server
   Ctx context.Context
@@ -34,12 +33,6 @@ type Site struct {
 
 type List struct {
   Names []template.HTML
-  Port string
-}
-
-type SitePort struct {
-  Site
-  Port string
 }
 
 type Export struct {
@@ -67,10 +60,6 @@ func (c *Card) CheckCard() string {
   return ""
 }
 
-type CardPort struct {
-  Card
-  Port string
-}
 
 type CardName struct {
   Name string
@@ -82,17 +71,6 @@ type Doc struct {
   Value string
 }
 
-type DocsPort struct {
-  Docs []Doc
-  Port string
-}
-
-type DocPort struct {
-  Doc
-  Port string
-}
-
-
 type PassRF struct {
   SerialNum string
   Date string
@@ -100,17 +78,6 @@ type PassRF struct {
   Code string
 }
 
-type PassPort struct {
-  PassRF
-  Port string
-}
-
-type MistPort struct {
-  Message string
-  Port string
-}
-
-type MessPort struct {
-  Message string
-  Port string
+type Message struct {
+  Text string
 }

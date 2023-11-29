@@ -12,6 +12,62 @@ import (
   "github.com/yurajp/wallt/internal/models"
 )
 
+type Site struct {
+	*models.Site
+}
+
+func (s Site) Port() string {
+	return WEB.Server.Addr
+}
+
+type List struct {
+	*models.List
+}
+
+func (l List) Port() string {
+	return WEB.Server.Addr
+}
+
+type Card struct {
+	*models.Card
+}
+
+func (c Card) Port() string {
+	return WEB.Server.Addr
+}
+
+type Doc struct {
+	*models.Doc
+}
+
+func (d Doc) Port() string {
+	return WEB.Server.Addr
+}
+
+type Docs struct {
+	Docs []*models.Doc
+}
+
+func (ds Docs) Port() string {
+	return WEB.Server.Addr
+}
+
+type PassRF struct {
+	*models.PassRF
+}
+
+func (p PassRF) Port() string {
+	return WEB.Server.Addr
+}
+
+type Message struct {
+	*models.Message
+}
+
+func (m Message) Port() string {
+	return WEB.Server.Addr
+}
+
 
 func check(err error) {
   if err != nil {
